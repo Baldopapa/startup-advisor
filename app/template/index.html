@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Advisor - Gestione Portafoglio</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Startup Advisor</h1>
+            <p>Gestisci il tuo portafoglio di startup e traccia le opportunità commerciali</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-button" onclick="showTab('add-startup')">➕ Aggiungi Startup</button>
+            <button class="tab-button" onclick="showTab('browse')">🔍 Esplora Portfolio</button>
+            <button class="tab-button" onclick="showTab('events')">📈 Eventi Commerciali</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-startups">0</div>
+                    <div class="stat-label">Startup nel Portfolio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-connections">0</div>
+                    <div class="stat-label">Connessioni Create</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-sectors">0</div>
+                    <div class="stat-label">Settori Coperti</div>
+                </div>
+            </div>
+
+            <h3>🎯 Startup Recenti</h3>
+            <div id="recent-startups" class="startup-grid">
+                <!-- Recent startups will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Add Startup Tab -->
+        <div id="add-startup" class="tab-content">
+            <h2>Aggiungi Nuova Startup</h2>
+            <form id="startup-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="company-name">Nome Azienda *</label>
+                        <input type="text" id="company-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Sito Web</label>
+                        <input type="url" id="website" placeholder="https://www.esempio.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="ceo-contact">Contatto CEO *</label>
+                        <input type="email" id="ceo-contact" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sector">Settore *</label>
+                        <select id="sector" required>
+                            <option value="">Seleziona settore</option>
+                            <option value="FinTech">FinTech</option>
+                            <option value="HealthTech">HealthTech</option>
+                            <option value="EdTech">EdTech</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="SaaS">SaaS</option>
+                            <option value="AI/ML">AI/ML</option>
+                            <option value="IoT">IoT</option>
+                            <option value="CleanTech">CleanTech</option>
+                            <option value="FoodTech">FoodTech</option>
+                            <option value="PropTech">PropTech</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="description">Breve Descrizione *</label>
+                        <textarea id="description" required placeholder="Chi sono e cosa fanno..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="offering">Cosa Offrono *</label>
+                        <textarea id="offering" required placeholder="Prodotti/servizi offerti..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="seeking">Cosa Cercano</label>
+                        <textarea id="seeking" placeholder="Finanziamenti, partnership, clienti..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="target">A Chi Si Rivolgono</label>
+                        <textarea id="target" placeholder="Target di mercato..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">💾 Salva Startup</button>
+            </form>
+        </div>
+
+        <!-- Browse Portfolio Tab -->
+        <div id="browse" class="tab-content">
+            <h2>Esplora Portfolio</h2>
+            
+            <div class="filters">
+                <div class="form-group">
+                    <label for="filter-sector">Filtra per Settore</label>
+                    <select id="filter-sector">
+                        <option value="">Tutti i settori</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-search">Cerca per Nome</label>
+                    <input type="text" id="filter-search" placeholder="Nome startup...">
+                </div>
+                <div class="form-group">
+                    <label for="filter-seeking">Filtro per Necessità</label>
+                    <input type="text" id="filter-seeking" placeholder="es. finanziamenti">
+                </div>
+                <div style="display: flex; align-items: end;">
+                    <button type="button" class="btn btn-secondary" onclick="clearFilters()">🗑️ Reset Filtri</button>
+                </div>
+            </div>
+
+            <div id="filtered-startups" class="startup-grid">
+                <!-- Filtered startups will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div id="events" class="tab-content">
+            <h2>Eventi Commerciali</h2>
+            <div class="events-list" id="events-list">
+                <!-- Events will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Modal -->
+    <div id="connection-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Crea Connessione Commerciale</h2>
+            <form id="connection-form">
+                <input type="hidden" id="selected-startup-id">
+                <div class="form-group">
+                    <label for="contact-company">Azienda di Contatto *</label>
+                    <input type="text" id="contact-company" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-person">Persona di Contatto *</label>
+                    <input type="text" id="contact-person" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-email">Email Contatto</label>
+                    <input type="email" id="contact-email">
+                </div>
+                <div class="form-group">
+                    <label for="connection-notes">Note sulla Connessione</label>
+                    <textarea id="connection-notes" placeholder="Dettagli sulla connessione..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">🤝 Crea Connessione</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
