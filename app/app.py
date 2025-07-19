@@ -3,7 +3,13 @@ from database import db, Startup, Event, init_db
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/startup_advisor.db'
+
+# configurazione per docker
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/startup_advisor.db'
+
+# configurazione per esecuzione locale
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///startup_advisor.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
@@ -81,6 +87,23 @@ def get_stats():
         'totalSectors': total_sectors,
         'recentStartups': [s.to_dict() for s in recent_startups]
     })
+
+@app.route('/api/startups/<int:id>', methods=['PUT'])
+def update_startup(id):
+    startup = Startup.query.get_or_404(id)
+    data = request.get_json()
+    
+    startup.company_name = data['companyName']
+    startup.website = data.get('website')
+    startup.ceo_contact = data['ceoContact']
+    startup.description = data['description']
+    startup.offering = data['offering']
+    startup.sector = data['sector']
+    startup.seeking = data.get('seeking')
+    startup.target = data.get('target')
+    
+    db.session.commit()
+    return jsonify(startup.to_dict()), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

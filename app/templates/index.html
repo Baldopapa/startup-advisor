@@ -57,23 +57,28 @@
                         <input type="url" id="website" placeholder="https://www.esempio.com">
                     </div>
                     <div class="form-group">
-                        <label for="ceo-contact">Contatto CEO *</label>
+                        <label for="ceo-contact">Contatto CEO/Founder *</label>
                         <input type="email" id="ceo-contact" required>
                     </div>
                     <div class="form-group">
                         <label for="sector">Settore *</label>
                         <select id="sector" required>
                             <option value="">Seleziona settore</option>
-                            <option value="FinTech">FinTech</option>
-                            <option value="HealthTech">HealthTech</option>
-                            <option value="EdTech">EdTech</option>
-                            <option value="E-commerce">E-commerce</option>
-                            <option value="SaaS">SaaS</option>
                             <option value="AI/ML">AI/ML</option>
-                            <option value="IoT">IoT</option>
+                            <option value="Blockchain">Blockchain</option>
                             <option value="CleanTech">CleanTech</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="EdTech">EdTech</option>
+                            <option value="FinTech">FinTech</option>
                             <option value="FoodTech">FoodTech</option>
+                            <option value="HealthTech">HealthTech</option>
+                            <option value="IoT">IoT</option>
+                            <option value="Logistics">Logistics</option>
+                            <option value="MarTech">MarTech</option>
+                            <option value="MedTech">MedTech</option>
                             <option value="PropTech">PropTech</option>
+                            <option value="SaaS">SaaS</option>
                             <option value="Altro">Altro</option>
                         </select>
                     </div>
@@ -167,6 +172,78 @@
                     <textarea id="connection-notes" placeholder="Dettagli sulla connessione..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-success">🤝 Crea Connessione</button>
+            </form>
+        </div>
+    </div>
+
+        <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('edit-modal').style.display='none'">&times;</span>
+            <h2>Modifica Startup</h2>
+            <form id="edit-form" onsubmit="updateStartup(event)">
+                <input type="hidden" id="edit-startup-id">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit-company-name">Nome Azienda *</label>
+                        <input type="text" id="edit-company-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-website">Sito Web</label>
+                        <input type="url" id="edit-website" placeholder="https://www.esempio.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ceo-contact">Contatto CEO/Founder *</label>
+                        <input type="email" id="edit-ceo-contact" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-sector">Settore *</label>
+                        <select id="edit-sector" required>
+                            <option value="">Seleziona settore</option>
+                            <option value="AI/ML">AI/ML</option>
+                            <option value="Blockchain">Blockchain</option>
+                            <option value="CleanTech">CleanTech</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="EdTech">EdTech</option>
+                            <option value="FinTech">FinTech</option>
+                            <option value="FoodTech">FoodTech</option>
+                            <option value="HealthTech">HealthTech</option>
+                            <option value="IoT">IoT</option>
+                            <option value="Logistics">Logistics</option>
+                            <option value="MarTech">MarTech</option>
+                            <option value="MedTech">MedTech</option>
+                            <option value="PropTech">PropTech</option>
+                            <option value="SaaS">SaaS</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit-description">Breve Descrizione *</label>
+                        <textarea id="edit-description" required placeholder="Chi sono e cosa fanno..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-offering">Cosa Offrono *</label>
+                        <textarea id="edit-offering" required placeholder="Prodotti/servizi offerti..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit-seeking">Cosa Cercano</label>
+                        <textarea id="edit-seeking" placeholder="Finanziamenti, partnership, clienti..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-target">A Chi Si Rivolgono</label>
+                        <textarea id="edit-target" placeholder="Target di mercato..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">💾 Salva Modifiche</button>
             </form>
         </div>
     </div>

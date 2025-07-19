@@ -122,6 +122,10 @@ async function applyFilters() {
     }
 }
 
+async function loadFilteredStartups() {
+    await applyFilters();
+}
+
 function createStartupCard(startup, showActions = false) {
     const card = document.createElement('div');
     card.className = 'startup-card';
@@ -139,6 +143,9 @@ function createStartupCard(startup, showActions = false) {
             <div class="actions">
                 <button class="btn btn-success btn-small" onclick="openConnectionModal(${startup.id}, '${startup.companyName}')">
                     🤝 Crea Connessione
+                </button>
+                <button class="btn btn-primary btn-small" onclick="openEditModal(${JSON.stringify(startup).replace(/"/g, '&quot;')})">
+                    ✏️ Modifica
                 </button>
                 <button class="btn btn-secondary btn-small" onclick="deleteStartup(${startup.id})">
                     🗑️ Elimina
@@ -289,6 +296,63 @@ function showTab(tabName) {
     }
 }
 
+function openEditModal(startup) {
+    // Popola il form con i dati esistenti
+    document.getElementById('edit-company-name').value = startup.companyName;
+    document.getElementById('edit-website').value = startup.website || '';
+    document.getElementById('edit-ceo-contact').value = startup.ceoContact;
+    document.getElementById('edit-description').value = startup.description;
+    document.getElementById('edit-offering').value = startup.offering;
+    document.getElementById('edit-sector').value = startup.sector;
+    document.getElementById('edit-seeking').value = startup.seeking || '';
+    document.getElementById('edit-target').value = startup.target || '';
+    document.getElementById('edit-startup-id').value = startup.id;
+    
+    // Mostra il modal
+    document.getElementById('edit-modal').style.display = 'block';
+}
+
+async function updateStartup(event) {
+    event.preventDefault();
+    
+    const startupId = parseInt(document.getElementById('edit-startup-id').value);
+    const startupData = {
+        companyName: document.getElementById('edit-company-name').value,
+        website: document.getElementById('edit-website').value,
+        ceoContact: document.getElementById('edit-ceo-contact').value,
+        description: document.getElementById('edit-description').value,
+        offering: document.getElementById('edit-offering').value,
+        sector: document.getElementById('edit-sector').value,
+        seeking: document.getElementById('edit-seeking').value,
+        target: document.getElementById('edit-target').value
+    };
+    
+    try {
+        const response = await fetch(`/api/startups/${startupId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(startupData)
+        });
+        
+        if (response.ok) {
+            // Chiudi il modal
+            document.getElementById('edit-modal').style.display = 'none';
+            alert('✅ Startup aggiornata con successo!');
+            
+            // Ricarica i dati
+            loadFilteredStartups();
+            loadDashboard();
+        } else {
+            throw new Error('Failed to update startup');
+        }
+    } catch (error) {
+        console.error('Error updating startup:', error);
+        alert('❌ Errore durante l\'aggiornamento della startup');
+    }
+}
+
 // Inizializzazione
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
@@ -304,6 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filter-sector').addEventListener('change', applyFilters);
     document.getElementById('filter-search').addEventListener('input', applyFilters);
     document.getElementById('filter-seeking').addEventListener('input', applyFilters);
+    document.getElementById('edit-form').addEventListener('submit', updateStartup);
     
     // Modal events
     document.querySelector('.close').addEventListener('click', closeModal);
