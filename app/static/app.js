@@ -1,5 +1,60 @@
 // app.js
 
+// Funzioni per la gestione delle startup selezionate
+let selectedStartups = [];
+
+function toggleStartupSelection(startupId) {
+    const index = selectedStartups.indexOf(startupId);
+    if (index === -1) {
+        selectedStartups.push(startupId);
+    } else {
+        selectedStartups.splice(index, 1);
+    }
+    updateSelectedCounter();
+}
+
+function updateSelectedCounter() {
+    const counter = document.getElementById('selected-counter');
+    if (counter) {
+        counter.textContent = selectedStartups.length;
+    }
+}
+
+async function generatePDF() {
+    if (selectedStartups.length === 0) {
+        alert('Seleziona almeno una startup per generare il report');
+        return;
+    }
+    console.log('Generazione PDF per le startup selezionate:', selectedStartups);
+    // Invia le startup selezionate al server per generare il PDF
+    try {
+        const response = await fetch('/api/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ selectedStartups })
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `startup_report_${new Date().toISOString().slice(0,10)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            console.error(response);
+            throw new Error('Errore nella generazione del PDF');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Errore durante la generazione del PDF');
+    }
+}
+
 // Funzioni modificate per usare le API
 async function loadDashboard() {
     try {
@@ -123,6 +178,10 @@ async function applyFilters() {
 }
 
 async function loadFilteredStartups() {
+    // Resetta le selezioni quando si applicano nuovi filtri
+    selectedStartups = [];
+    updateSelectedCounter();
+
     await applyFilters();
 }
 
@@ -130,15 +189,25 @@ function createStartupCard(startup, showActions = false) {
     const card = document.createElement('div');
     card.className = 'startup-card';
     
+    // Aggiunge classe 'selected' se la startup è selezionata
+    if (selectedStartups.includes(startup.id)) {
+        card.classList.add('selected');
+    }
+    
     card.innerHTML = `
+        ${showActions ? `
+            <div class="selection-checkbox">
+                <input type="checkbox" id="select-${startup.id}" 
+                    onchange="toggleStartupSelection(${startup.id}, this)"
+                    ${selectedStartups.includes(startup.id) ? 'checked' : ''}>
+                <label for="select-${startup.id}"></label>
+            </div>
+        ` : ''}
         <h3>${startup.companyName}</h3>
         ${startup.website ? `<a href="${startup.website}" target="_blank" class="website">🌐 ${startup.website}</a>` : ''}
         <div class="field"><strong>CEO:</strong> ${startup.ceoContact}</div>
         <div class="field"><strong>Settore:</strong> ${startup.sector}</div>
         <div class="field"><strong>Descrizione:</strong> ${startup.description}</div>
-        <div class="field"><strong>Offerta:</strong> ${startup.offering}</div>
-        ${startup.seeking ? `<div class="field"><strong>Cerca:</strong> ${startup.seeking}</div>` : ''}
-        ${startup.target ? `<div class="field"><strong>Target:</strong> ${startup.target}</div>` : ''}
         ${showActions ? `
             <div class="actions">
                 <button class="btn btn-success btn-small" onclick="openConnectionModal(${startup.id}, '${startup.companyName}')">
@@ -155,6 +224,24 @@ function createStartupCard(startup, showActions = false) {
     `;
     
     return card;
+}
+
+function toggleStartupSelection(startupId, checkboxElement) {
+    const index = selectedStartups.indexOf(startupId);
+    if (index === -1) {
+        selectedStartups.push(startupId);
+        if (checkboxElement) {
+            checkboxElement.checked = true;
+            checkboxElement.parentElement.parentElement.classList.add('selected');
+        }
+    } else {
+        selectedStartups.splice(index, 1);
+        if (checkboxElement) {
+            checkboxElement.checked = false;
+            checkboxElement.parentElement.parentElement.classList.remove('selected');
+        }
+    }
+    updateSelectedCounter();
 }
 
 function clearFilters() {
@@ -339,7 +426,9 @@ async function updateStartup(event) {
         if (response.ok) {
             // Chiudi il modal
             document.getElementById('edit-modal').style.display = 'none';
-            alert('✅ Startup aggiornata con successo!');
+            setTimeout(() => {
+                alert('✅ Startup aggiornata con successo!');
+            }, 2000);
             
             // Ricarica i dati
             loadFilteredStartups();

@@ -1,5 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from database import db, Startup, Event, init_db
+from fpdf import FPDF
+from fpdf.enums import XPos, YPos
+from datetime import datetime
+from flask import send_file
+import tempfile
 import os
 
 app = Flask(__name__)
@@ -105,5 +110,119 @@ def update_startup(id):
     db.session.commit()
     return jsonify(startup.to_dict()), 200
 
+# Generate PDF Report
+@app.route('/api/generate-pdf', methods=['POST'])
+def generate_pdf():
+    try:
+        data = request.get_json()
+        selected_startups = data['selectedStartups']
+        print(f"Selected startups for PDF: {selected_startups}")
+
+        # Verifica che ci siano startup selezionate
+        if not selected_startups:
+            return jsonify({"error": "Nessuna startup selezionata"}), 400
+
+        # Crea il PDF in un file temporaneo
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmpfile:
+            pdf = FPDF()
+            pdf.add_page()
+
+            # filepath: /Users/maurobaldoni/Documents/dev/startup-advisor/app/app.py
+            font_path_regular = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'DejaVuSans.ttf')
+            font_path_bold = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'DejaVuSans-Bold.ttf')
+            font_path_italic = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'DejaVuSans-Oblique.ttf')
+            pdf.add_font('DejaVu', '', font_path_regular)
+            pdf.add_font('DejaVu', 'B', font_path_bold)
+            pdf.add_font('DejaVu', 'I', font_path_italic)
+            pdf.set_font('DejaVu', '', 10)
+            
+            # Configurazione del documento
+            pdf.set_auto_page_break(auto=True, margin=15)
+            
+            # Logo (gestisce l'assenza del logo)
+            try:
+                logo_path = os.path.join(os.path.dirname(__file__), 'static', 'logo.png')
+                if os.path.exists(logo_path):
+                    pdf.image(logo_path, x=10, y=8, w=16)
+            except:
+                pass  # Continua senza logo se c'è un problema
+            
+            # Titolo del report
+            pdf.set_font('DejaVu', 'B', 25)
+            pdf.set_xy(0, 8)
+            pdf.cell(0, 12, "Startup Advisor", 0, align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.ln(5)
+
+            # Data di estrazione
+            pdf.set_font('DejaVu', '', 10)
+            pdf.set_xy(0, 20)
+            mesi = [
+                "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+                "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+            ]
+            now = datetime.now()
+            data_estrazione = f"{now.day} {mesi[now.month - 1]} {now.year}"
+            pdf.cell(0, 10, f"Data estrazione: {data_estrazione}", 0, 1, 'R')
+            # Titolo
+            pdf.set_font('DejaVu', 'B', 16)
+            pdf.set_xy(0, 35)
+            pdf.cell(0, 10, "Startup Selezionate", 0, align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.ln(5)
+            
+            # Contenuto
+            for i, startup_id in enumerate(selected_startups, 1):
+                startup = db.session.get(Startup, startup_id)
+                print(f"Processing startup ID: {startup_id}, Data: {startup}")
+                if not startup:
+                    continue
+                    
+                # Intestazione startup
+                pdf.set_fill_color(200, 220, 255)
+                pdf.set_font('DejaVu', 'B', 12)
+                pdf.cell(0, 10, f"{i}. {startup.company_name}", 0, 1, 'L', fill=True)
+                
+                # Dettagli
+                pdf.set_font('DejaVu', '', 10)
+                details = [
+                    f"\u2022 Settore: {startup.sector}",
+                    # f"\u2022 CEO: {startup.ceo_contact}",
+                    f"\u2022 Sito web: {startup.website or 'N/D'}",
+                    f"\u2022 Descrizione: {startup.description}",
+                    f"\u2022 Offerta: {startup.offering}",
+                    f"\u2022 Cercano: {startup.seeking or 'N/D'}",
+                    f"\u2022 Aziende Target: {startup.target or 'N/D'}"
+                ]
+
+                # Stampa le chiavi in neretto
+                for detail in details:
+                    key, value = detail.split(":", 1)
+                    pdf.set_font('DejaVu', 'B', 10)
+                    pdf.write(7, key + ": ")
+                    pdf.set_font('DejaVu', '', 10)
+                    pdf.write(7, value.strip())
+                    pdf.ln(7)
+                
+                pdf.ln(5)
+            
+            # Footer
+            pdf.set_y(-25)
+            pdf.set_font('DejaVu', 'I', 8)
+            pdf.cell(0, 10, "Made with ❤️ by Mauro Baldoni | Contatti: mauro.baldoni@gmail.com", 0, align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+            # Salva nel file temporaneo
+            pdf.output(tmpfile.name)
+            
+            # Invia il file
+            return send_file(
+                tmpfile.name,
+                as_attachment=True,
+                download_name=f"startup_report_{datetime.now().strftime('%Y%m%d')}.pdf",
+                mimetype='application/pdf'
+            )
+            
+    except Exception as e:
+        print("Errore PDF:", e)
+        return jsonify({"error": str(e)}), 500
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

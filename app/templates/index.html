@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Startup Advisor - Gestione Portafoglio</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='50%' x='50%' text-anchor='middle' dominant-baseline='central' font-size='48'>🚀</text></svg>">
 </head>
 <body>
     <div class="container">
@@ -36,8 +37,8 @@
                     <div class="stat-label">Settori Coperti</div>
                 </div>
             </div>
-
             <h3>🎯 Startup Recenti</h3>
+            <br>
             <div id="recent-startups" class="startup-grid">
                 <!-- Recent startups will be loaded here -->
             </div>
@@ -131,6 +132,14 @@
                 </div>
                 <div style="display: flex; align-items: end;">
                     <button type="button" class="btn btn-secondary" onclick="clearFilters()">🗑️ Reset Filtri</button>
+                </div>
+                <div style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span id="selected-counter">0</span> startup selezionate
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="generatePDF()">
+                        🗂️ Genera PDF
+                    </button>
                 </div>
             </div>
 
